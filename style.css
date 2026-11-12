@@ -4,3 +4,5 @@
 .tabla-scroll{overflow-x:auto;margin:16px 0;background:white;border-radius:8px}.tabla-scroll table{border-collapse:collapse;width:100%;font-size:16px}.tabla-scroll caption{text-align:left;font-weight:700;padding:12px 14px}.tabla-scroll th,.tabla-scroll td{border-top:1px solid var(--line);padding:8px 12px;text-align:left}.relacionadas{border-top:1px solid var(--line);margin-top:40px}
 @media(max-width:700px){.guia header,.guia main,.guia footer{padding-left:20px;padding-right:20px}}
 @media print{.guia .cta,.guia .migas,.guia .relacionadas{display:none!important}}
+.otras{display:block;flex-basis:100%;margin-top:.6rem;font-size:.9em}
+.otras a{color:inherit}
