@@ -6,3 +6,6 @@
 @media print{.guia .cta,.guia .migas,.guia .relacionadas{display:none!important}}
 .otras{display:block;flex-basis:100%;margin-top:.6rem;font-size:.9em}
 .otras a{color:inherit}
+.ventajas{display:flex;flex-wrap:wrap;gap:.5rem;list-style:none;padding:0;margin:1rem 0}
+.ventajas li{border:1px solid currentColor;border-radius:999px;padding:.2rem .7rem;font-size:.9em}
+.fecha{font-size:.85em;opacity:.8;margin-top:.3rem}
