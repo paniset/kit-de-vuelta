@@ -1,3 +1,5 @@
+import { EXAMPLES } from './ejemplos.mjs';
+export { EXAMPLES };
 export const MAX_BYTES = 256 * 1024;
 export class ValidationError extends Error {
   constructor(message, path) { super(message); this.path = path; }
@@ -90,4 +92,13 @@ export function serializeDocument(doc) {
   const raw = JSON.stringify(doc, null, 2);
   if (new TextEncoder().encode(raw).length > MAX_BYTES) fail('El archivo supera 256 KiB.', 'document');
   return raw;
+}
+// Ejemplo de una guía como ficha DEMO ya validada; null si la clave no es propia de EXAMPLES.
+export function exampleDocument(key, stage) {
+  if (typeof key !== 'string' || !Object.hasOwn(EXAMPLES, key)) return null;
+  const { kit, entregas } = EXAMPLES[key], index = stage ?? entregas.length - 1;
+  if (!Number.isInteger(index) || index < 0 || index >= entregas.length) fail('Entrega de ejemplo inexistente.', 'returns');
+  const doc = confirmDeparture(kit, true);
+  doc.returns = structuredClone(entregas[index].returns);
+  return validateDocument(doc);
 }

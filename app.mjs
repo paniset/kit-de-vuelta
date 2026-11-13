@@ -1,4 +1,4 @@
-import { MAX_BYTES, ValidationError, claimText, confirmDeparture, newDeparture, summary, parseDocument, serializeDocument, validateDocument } from './logic.mjs';
+import { EXAMPLES, MAX_BYTES, ValidationError, claimText, confirmDeparture, exampleDocument, newDeparture, summary, parseDocument, serializeDocument, validateDocument } from './logic.mjs';
 const $ = id => document.getElementById(id);
 const component = () => ({ id: crypto.randomUUID(), name: '', quantity: 1, condition: 'bien', note: '' });
 let doc = { version: 1, demo: false, phase: 'draft', kit: { name: '', components: [component()] }, base: null, returns: [] };
@@ -132,8 +132,10 @@ $('import').onchange = async event => {
   } catch (error) { showError(error); }
   finally { importing = false; event.target.value = ''; }
 };
+// Hay ficha en curso si se ha tocado algo, si la salida está fijada o si el kit ya tiene nombre.
+const hasDraft = () => dirty || doc.phase === 'out' || !!$('kit-name').value.trim();
 $('demo').onclick = () => {
-  if ((dirty || doc.phase === 'out' || $('kit-name').value.trim()) && !window.confirm('La demo reemplazará esta ficha. ¿Confirmas descartar la actual?')) return;
+  if (hasDraft() && !window.confirm('La demo reemplazará esta ficha. ¿Confirmas descartar la actual?')) return;
   const kit = { name: 'Caja de montaje · DEMO', components: [{ ...component(), name: 'Cables', quantity: 3 }, { ...component(), name: 'Cargador', quantity: 1 }] };
   doc = confirmDeparture(kit, true); dirty = true; render(); $('message').textContent = 'Demo voluntaria: prueba una devolución parcial y una incidencia.';
 };
@@ -166,6 +168,26 @@ window.addEventListener('beforeprint', () => {
     $('print-summary').textContent = error.message; $('print-rows').replaceChildren();
   }
 });
+// Ejemplos de las guías por sector: siempre DEMO y nunca reemplazan una ficha en curso sin confirmación.
+function loadExample(key) {
+  const example = exampleDocument(key);
+  if (!example) return false;
+  if (hasDraft() && !window.confirm(`El ejemplo «${EXAMPLES[key].title}» reemplazará esta ficha. ¿Confirmas descartar la actual?`)) {
+    $('message').textContent = 'Se conserva tu ficha. El ejemplo no se ha cargado.'; return false;
+  }
+  doc = example; dirty = false; render();
+  $('message').textContent = `Ejemplo cargado: ${EXAMPLES[key].title}. Es una DEMO con material ficticio: cambia las cifras de la vuelta y pulsa «Actualizar comprobación», o usa «Crear otra salida» para adaptar la lista.`;
+  return true;
+}
+document.addEventListener('click', event => {
+  const link = event.target?.closest?.('a[data-ejemplo]');
+  if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  if (loadExample(link.dataset.ejemplo)) globalThis.history?.replaceState?.(null, '', `?ejemplo=${link.dataset.ejemplo}`);
+});
 window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
 for (let i = 0; i < 15; i++) { const row = el('tr'); for (let j = 0; j < 7; j++) row.append(el('td')); $('blank-rows').append(row); }
 render();
+// Las guías enlazan a ./?ejemplo=<clave>; una clave desconocida deja la ficha vacía de siempre.
+const search = globalThis.location?.search;
+if (search) loadExample(new URLSearchParams(search).get('ejemplo'));
