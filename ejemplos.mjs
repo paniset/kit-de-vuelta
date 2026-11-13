@@ -39,6 +39,39 @@ const taladro = kit('Taladro percutor con maletín', [
   ['maletin', 'Maletín', 1, 'con desgaste', 'cierre duro']
 ]);
 
+// Puesto de trabajo: sin nombres; el número de serie o la etiqueta de inventario va en la nota de salida.
+const puesto = kit('Equipo del puesto de administración', [
+  ['portatil', 'Portátil', 1, 'bien', 'etiqueta de inventario PT-031'],
+  ['cargador-portatil', 'Cargador del portátil', 1],
+  ['funda', 'Funda del portátil', 1, 'con desgaste', 'cremallera dura'],
+  ['movil', 'Móvil de empresa', 1, 'bien', 'etiqueta MV-112, con protector de pantalla'],
+  ['cargador-movil', 'Cargador del móvil', 1],
+  ['sim', 'Tarjeta SIM de empresa', 1],
+  ['llaves', 'Llave', 2, 'bien', '1 de la oficina y 1 del archivo'],
+  ['tarjeta', 'Tarjeta de acceso', 1],
+  ['polos', 'Polo de uniforme', 3],
+  ['pantalones', 'Pantalón de uniforme', 2],
+  ['chaqueta', 'Chaqueta de uniforme', 1]
+]);
+
+const grabacion = kit('Equipo de grabación de la asociación', [
+  ['camara', 'Cuerpo de cámara', 1, 'bien', 'etiqueta CAM-02'],
+  ['objetivo', 'Objetivo zoom', 1, 'bien', 'con tapa delantera y trasera'],
+  ['baterias', 'Batería de cámara', 2, 'con desgaste', 'una aguanta menos carga'],
+  ['cargador', 'Cargador de baterías', 1],
+  ['tarjetas', 'Tarjeta de memoria', 2],
+  ['tripode', 'Trípode de cámara', 1],
+  ['zapata', 'Zapata rápida del trípode', 1],
+  ['grabadora', 'Grabadora de audio', 1],
+  ['corbata', 'Micrófono de corbata', 2],
+  ['xlr', 'Cable XLR', 2],
+  ['auriculares', 'Auriculares', 1],
+  ['antiviento', 'Antiviento de pelo', 1],
+  ['focos', 'Foco LED', 2],
+  ['pies', 'Pie de foco', 2],
+  ['alimentadores', 'Alimentador de foco', 2]
+]);
+
 export const EXAMPLES = {
   colegio: {
     title: 'Maleta de robótica de un AMPA',
@@ -67,6 +100,27 @@ export const EXAMPLES = {
     entregas: [
       { title: 'Vuelta del préstamo', returns: returns(taladro, {
         taladro: [1], baterias: [1, 1, 'no carga'], cargador: [1], 'brocas-pared': [3, 1, 'la de 6 mm, doblada'], 'brocas-madera': [4], puntas: [8], portapuntas: [1], empunadura: [1], maletin: [1]
+      }) }
+    ]
+  },
+  empleado: {
+    title: 'Devolución del equipo de un puesto de trabajo',
+    kit: puesto,
+    entregas: [
+      { title: 'Primera entrega: último día en el puesto', returns: returns(puesto, {
+        portatil: [1], funda: [1], movil: [0, 1, 'pantalla rajada'], 'cargador-movil': [1], sim: [1], llaves: [2], tarjeta: [1], polos: [2], pantalones: [2]
+      }) },
+      { title: 'Segunda entrega: llegan el cargador y la chaqueta (totales acumulados)', returns: returns(puesto, {
+        portatil: [1], 'cargador-portatil': [1], funda: [1], movil: [0, 1, 'pantalla rajada'], 'cargador-movil': [1], sim: [1], llaves: [2], tarjeta: [1], polos: [2], pantalones: [2], chaqueta: [1]
+      }) }
+    ]
+  },
+  audiovisual: {
+    title: 'Préstamo de equipo audiovisual de una asociación',
+    kit: grabacion,
+    entregas: [
+      { title: 'Vuelta después del rodaje', returns: returns(grabacion, {
+        camara: [1], objetivo: [1], baterias: [2], cargador: [1], tarjetas: [1], tripode: [1], grabadora: [1], corbata: [1, 1, 'cable pelado junto a la pinza'], xlr: [2], auriculares: [1], focos: [2], pies: [1, 1, 'rosca de la cabeza pasada'], alimentadores: [2]
       }) }
     ]
   }

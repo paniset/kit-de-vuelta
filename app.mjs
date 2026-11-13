@@ -76,7 +76,7 @@ function updateResult() {
   if (doc.phase !== 'out') return;
   const result = summary(doc.base, doc.returns);
   result.rows.forEach((row, i) => { $(`balance-${i}`).textContent = `Salida: ${row.quantity} · Bien: ${row.good} · Incidencia: ${row.issue} · Pendiente: ${row.pending}`; });
-  $('pending').textContent = result.pending ? `Faltan piezas: ${result.pending} pendientes.` : 'No faltan piezas: 0 pendientes.';
+  $('pending').textContent = result.pending === 1 ? 'Falta 1 pieza pendiente.' : result.pending ? `Faltan piezas: ${result.pending} pendientes.` : 'No faltan piezas: 0 pendientes.';
   $('issues').textContent = result.issues ? `Hay incidencias: ${result.issues} piezas.` : 'Sin incidencias declaradas.';
   $('complete').textContent = result.complete ? 'Completo sin incidencias.' : 'La comprobación sigue abierta.';
 }
