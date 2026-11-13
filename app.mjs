@@ -1,8 +1,8 @@
-import { MAX_BYTES, ValidationError, confirmDeparture, newDeparture, summary, parseDocument, serializeDocument, validateDocument } from './logic.mjs';
+import { MAX_BYTES, ValidationError, claimText, confirmDeparture, newDeparture, summary, parseDocument, serializeDocument, validateDocument } from './logic.mjs';
 const $ = id => document.getElementById(id);
 const component = () => ({ id: crypto.randomUUID(), name: '', quantity: 1, condition: 'bien', note: '' });
 let doc = { version: 1, demo: false, phase: 'draft', kit: { name: '', components: [component()] }, base: null, returns: [] };
-let dirty = false, importing = false;
+let dirty = false, importing = false, blankPrint = false;
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 function clearErrors() {
   $('global-error').textContent = '';
@@ -58,6 +58,7 @@ function drawComponents(kit) {
 function render() {
   clearErrors(); $('kit-name').value = doc.kit.name; drawComponents(doc.kit);
   const out = doc.phase === 'out'; $('base-fields').disabled = out; $('depart').hidden = out; $('locked').hidden = !out; $('return-form').hidden = !out; $('empty').hidden = out; $('demo-badge').hidden = !doc.demo;
+  $('copy-summary').disabled = !out; $('copy-status').textContent = ''; $('copy-fallback').hidden = true;
   $('returns').replaceChildren();
   if (out) doc.base.components.forEach((c, i) => {
     const r = doc.returns.find(r => r.id === c.id); const row = el('div', undefined, 'return-row');
@@ -136,8 +137,28 @@ $('demo').onclick = () => {
   const kit = { name: 'Caja de montaje · DEMO', components: [{ ...component(), name: 'Cables', quantity: 3 }, { ...component(), name: 'Cargador', quantity: 1 }] };
   doc = confirmDeparture(kit, true); dirty = true; render(); $('message').textContent = 'Demo voluntaria: prueba una devolución parcial y una incidencia.';
 };
-$('print').onclick = () => { try { doc = collect(); clearErrors(); printSheet(); window.print(); } catch (error) { showError(error); } };
+$('print').onclick = () => { endBlankPrint(); try { doc = collect(); clearErrors(); printSheet(); window.print(); } catch (error) { showError(error); } };
+function endBlankPrint() { blankPrint = false; document.body.classList.remove('print-blank'); }
+// afterprint no es fiable en todos los móviles: el siguiente toque en la página también cierra el modo.
+$('print-blank').onclick = () => {
+  blankPrint = true; document.body.classList.add('print-blank');
+  setTimeout(() => document.addEventListener('pointerdown', endBlankPrint, { once: true }), 0);
+  try { window.print(); } catch (error) { endBlankPrint(); showError(error); }
+};
+document.addEventListener('keydown', event => { if (blankPrint && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'p') endBlankPrint(); });
+window.addEventListener('afterprint', endBlankPrint);
+async function copyText(text) {
+  try { await globalThis.navigator.clipboard.writeText(text); return true; }
+  catch { const area = $('copy-fallback'); area.value = text; area.hidden = false; area.focus(); area.select(); return false; }
+}
+$('copy-summary').onclick = async () => {
+  if (doc.phase !== 'out') return;
+  try { doc = collect(); clearErrors(); updateResult(); } catch (error) { showError(error); return; }
+  $('copy-fallback').hidden = true; $('copy-status').textContent = '';
+  $('copy-status').textContent = await copyText(claimText(doc.base, doc.returns)) ? 'Resumen copiado. Pégalo en tu mensaje.' : 'No se pudo copiar automáticamente: el texto está seleccionado debajo, cópialo con Ctrl+C.';
+};
 window.addEventListener('beforeprint', () => {
+  if (blankPrint) return;
   try { doc = collect(); printSheet(); }
   catch (error) {
     showError(error); $('print-name').textContent = 'Ficha pendiente de corregir';
@@ -146,4 +167,5 @@ window.addEventListener('beforeprint', () => {
   }
 });
 window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
+for (let i = 0; i < 15; i++) { const row = el('tr'); for (let j = 0; j < 7; j++) row.append(el('td')); $('blank-rows').append(row); }
 render();

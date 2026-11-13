@@ -72,6 +72,13 @@ export function summary(base, returns) {
   const pending = rows.reduce((sum, r) => sum + r.pending, 0), issues = rows.reduce((sum, r) => sum + r.issue, 0);
   return { rows, pending, issues, complete: pending === 0 && issues === 0 };
 }
+export function claimText(base, returns) {
+  const result = summary(base, returns), head = `Kit «${base.name.trim()}»: `;
+  if (result.complete) return `${head}todo ha vuelto bien.`;
+  const list = (key, withNote) => result.rows.filter(r => r[key] > 0).map(r => `${r.name.trim()} (${r[key]}${withNote && r.note.trim() ? `; ${r.note.trim()}` : ''})`).join(', ');
+  const missing = result.pending === 0 ? 'no falta ninguna pieza.' : `${result.pending === 1 ? 'falta 1 pieza' : `faltan ${result.pending} piezas`}: ${list('pending')}.`;
+  return head + missing + (result.issues ? ` Con incidencia: ${list('issue', true)}.` : '');
+}
 export function parseDocument(raw) {
   if (typeof raw !== 'string' || new TextEncoder().encode(raw).length > MAX_BYTES) fail('El archivo supera 256 KiB.', 'document');
   let doc;
